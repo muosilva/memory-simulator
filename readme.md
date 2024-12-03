@@ -24,3 +24,6 @@ O objetivo deste projeto é criar um sistema simples de gerenciamento de memóri
 ## Como Compilar e Executar
     -> gcc -Wall -Wextra -std=c99 -o memoria main.c memory_manager.c
     -> ./memoria
+## Output
+
+![image](https://github.com/user-attachments/assets/00885cb7-bc59-4d95-8cfe-b40220028340)
