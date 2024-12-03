@@ -3,11 +3,11 @@
 #include <stdbool.h>
 #include <string.h>
 
-static char memoria[TAMANHO_MEMORIA];
+static char memoria[TAMANHO_MEMORIA]; // Memória simulada
+static BlocoMemoria lista_blocos[TAMANHO_MEMORIA]; // Lista de blocos de memória
+static BlocoMemoria* cabeca = NULL; // Cabeça da lista de blocos
 
-static BlocoMemoria lista_blocos[TAMANHO_MEMORIA];
-static BlocoMemoria* cabeca = NULL;
-
+// Inicializa a memória simulada e os blocos de memória
 void inicializa_memoria() {
     cabeca = &lista_blocos[0];
     cabeca->inicio = 0;
@@ -16,24 +16,27 @@ void inicializa_memoria() {
     cabeca->proximo = NULL;
 }
 
+// Função de alocação de memória
 void* aloca(size_t tamanho) {
     BlocoMemoria* atual = cabeca;
 
     while (atual) {
+        // Se o bloco estiver livre e tiver tamanho suficiente
         if (atual->livre && atual->tamanho >= tamanho) {
+            // Se o bloco for maior que o necessário, divide
             if (atual->tamanho > tamanho) {
                 BlocoMemoria* novo_bloco = &lista_blocos[atual - lista_blocos + 1];
                 novo_bloco->inicio = atual->inicio + tamanho;
                 novo_bloco->tamanho = atual->tamanho - tamanho;
                 novo_bloco->livre = true;
                 novo_bloco->proximo = atual->proximo;
-
                 atual->proximo = novo_bloco;
             }
 
+            // Atualiza o bloco atual
             atual->tamanho = tamanho;
             atual->livre = false;
-            return &memoria[atual->inicio];
+            return &memoria[atual->inicio]; // Retorna o ponteiro para a memória alocada
         }
         atual = atual->proximo;
     }
@@ -42,6 +45,7 @@ void* aloca(size_t tamanho) {
     return NULL;
 }
 
+// Função para desalocar memória
 void desaloca(void* endereco) {
     if (!endereco) {
         fprintf(stderr, "Erro: Endereço inválido\n");
@@ -55,6 +59,7 @@ void desaloca(void* endereco) {
         if (atual->inicio == pos) {
             atual->livre = true;
 
+            // Verifica se o próximo bloco também está livre, para fundir os blocos
             if (atual->proximo && atual->proximo->livre) {
                 atual->tamanho += atual->proximo->tamanho;
                 atual->proximo = atual->proximo->proximo;
@@ -67,13 +72,20 @@ void desaloca(void* endereco) {
     fprintf(stderr, "Erro: Endereço inválido\n");
 }
 
+// Função para exibir a memória de maneira simplificada
 void exibe_memoria() {
+    size_t memoria_livre = 0;
+    int blocos_livres = 0;
     BlocoMemoria* atual = cabeca;
 
     printf("Estado da Memória:\n");
     while (atual) {
-        printf("Início: %zu, Tamanho: %zu, Livre: %s\n",
-               atual->inicio, atual->tamanho, atual->livre ? "Sim" : "Não");
+        if (atual->livre) {
+            memoria_livre += atual->tamanho;
+            blocos_livres++;
+        }
         atual = atual->proximo;
     }
+
+    printf("Memória livre: %zu bytes em %d blocos.\n", memoria_livre, blocos_livres);
 }
